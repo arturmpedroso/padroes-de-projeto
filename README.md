@@ -14,11 +14,11 @@ Ao implementar esse padrão de projeto, o código utilizado na construção de u
 Diretor - chamar builder após builder de forma espalhado pelo código pode acabar gerando poluição , então, caso seja possível determinar um padrão de construção (flashcard de resposta aberta, flashcard com múltipla escolha de 5 alternativas, flashcard de verdadeiro ou falso com 3 questões, etc), pode-se utilizar objetos chamados de diretores, para chamar etapas da criação em uma ordem específica. Note que não é obrigatório a existência desse objeto, mas ele ajuda muito á reutilizar código e deixar o produto final mais limpo.
 
 ### Estrutura:
-* **<<interface>> Builder:** declara as etapas de produção esperadas e comum em qualquer objeto construído pelos builders concretos
-* **<<class>> Builder Concreto:** é onde se encontram as diversas implementações da construção de um objeto.
-* **<<class>> Produto:** são os objetos finais, as classes quais as partes de construção foram retiradas e agrupadas nos Builder Concretos.
-* **<<class>> Diretor:** indica em qual ordem as etapas de construção serão chamadas. Pode receber um builder específico direto na sua criação, ou utilizar métodos de produção que contenham um objeto builder como parâmetro.
-* **<<class>>Cliente :** relaciona um objeto builder á um construtor, geralmente isso acontece por meio da passagem de um objeto builder como parâmetro no método construtor de um diretor, de modo á fazer com que ele utilize os métodos daquele objeto nas etapas de construção. Contudo, é possível passar um builder como parámetro em um método de produção do diretor, assim utilizando diferentes builders na construção de um único objeto.
+* **`interface Builder:`** declara as etapas de produção esperadas e comum em qualquer objeto construído pelos builders concretos
+* **`class Builder Concreto:`** é onde se encontram as diversas implementações da construção de um objeto.
+* **`class Produto:`** são os objetos finais, as classes quais as partes de construção foram retiradas e agrupadas nos Builder Concretos.
+* **`class Diretor:`** indica em qual ordem as etapas de construção serão chamadas. Pode receber um builder específico direto na sua criação, ou utilizar métodos de produção que contenham um objeto builder como parâmetro.
+* **`class>>Cliente :`** relaciona um objeto builder á um construtor, geralmente isso acontece por meio da passagem de um objeto builder como parâmetro no método construtor de um diretor, de modo á fazer com que ele utilize os métodos daquele objeto nas etapas de construção. Contudo, é possível passar um builder como parámetro em um método de produção do diretor, assim utilizando diferentes builders na construção de um único objeto.
 
 ### Referência:
 https://refactoring.guru/pt-br/design-patterns/builder
@@ -41,10 +41,10 @@ Obter uma interface compatível com um dos objetos; Após isso, o objeto consegu
 Continuando no exemplo, seria possível criar uma adaptador DOCX-para-ODT que transformasse apenas o formato do documento, mas mantendo seu conteúdo, assim garantindo o funcionamento correto da aplicação.
 
 ### Estrutura Adaptador de objeto:
-* **<<class>> Client:** responsável por manter as ordens de negócio da aplicação;
-* **<<interface>> Client Interface:** descreve o comportamento esperado de outras classes para que estas sejam capazes de interagir com o código do cliente.
-* **<<class>> Service:** é uma classe útil, a qual será utilizada para realizar alguma função. Está é a classe que o cliente não consegue usar por causa da interface divergente.
-* **<<class>> Adaptador:** é o ponto de ligação entre o cliente e o serviço, nela fica a implementação que encobre o objeto de Serviço. Todas as chamadas feitas através da interface do Cliente são convertidas para chamadas nas quais o Serviço consiga entender.
+* **`class Client:`** responsável por manter as ordens de negócio da aplicação;
+* **`interface Client Interface:`** descreve o comportamento esperado de outras classes para que estas sejam capazes de interagir com o código do cliente.
+* **`class Service:`** é uma classe útil, a qual será utilizada para realizar alguma função. Está é a classe que o cliente não consegue usar por causa da interface divergente.
+* **`class Adaptador:`** é o ponto de ligação entre o cliente e o serviço, nela fica a implementação que encobre o objeto de Serviço. Todas as chamadas feitas através da interface do Cliente são convertidas para chamadas nas quais o Serviço consiga entender.
 
 ### Referência:
 https://refactoring.guru/pt-br/design-patterns/adapter
@@ -71,9 +71,9 @@ Esse padrão aconselha a criação de classes para atuar como os estados de um o
 Sendo assim, todos os comportamentos são retirados do objeto original, o qual passa a ser chamado de contexto. Ele apenas guarda uma referência á uma classe de estado, para ser possível identificar seu estado atual. Para fazer a transição de estados, o objeto de estado atual é trocado pelo objeto do novo estado. Vale ressaltar que todos os objetos de estado devem seguir a mesma, para que o contexto possa interagir com os mesmos parâmetros.
 
 ### Estrutura
-* **<<class>> Context:** deve possuir um atributo de referência para um objeto concreto de  estado, além de conseguir passar todas as chamadas para esses objetos a partir da mesma interface.
-* **<<interface>> State:** contém assinaturas de métodos comuns entre os diversos estados. É importante que eles sejam aplicáveis a todos o estados, a fim de evitar a existência de métodos inutilizados por algum estado
-* **<<clas>> Concrete State:** mantém a implementação dos métodos interfaces relativos à funcionalidade daquele estado. É possível que objetos de estado armazenem referências para seu objeto de contexto origem, para garantir a possibilidade de buscar qualquer informação necessária, ou realizar transições de estado. 
+* **`class Context:`** deve possuir um atributo de referência para um objeto concreto de  estado, além de conseguir passar todas as chamadas para esses objetos a partir da mesma interface.
+* **`interface State:`** contém assinaturas de métodos comuns entre os diversos estados. É importante que eles sejam aplicáveis a todos o estados, a fim de evitar a existência de métodos inutilizados por algum estado
+* **`class Concrete State:`** mantém a implementação dos métodos interfaces relativos à funcionalidade daquele estado. É possível que objetos de estado armazenem referências para seu objeto de contexto origem, para garantir a possibilidade de buscar qualquer informação necessária, ou realizar transições de estado. 
 
 OBS: ambos os objetos de estado e contexto podem iniciar uma transição de estado e fazer a substituição da referência presente no contexto.
 
