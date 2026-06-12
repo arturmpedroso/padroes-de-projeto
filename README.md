@@ -1,7 +1,7 @@
 ### Uso de IA
-Foi utilizado o Gemini
-O texto foi escrito por mim, foi pedido para corrigir minimammente os erros ortográficos e fazer a formatação do README em markdown
-O contexto dos problemas são originais (feitos por mim)
+Foi utilizado o Gemini<br>
+O texto foi escrito por mim, foi pedido para corrigir minimammente os erros ortográficos e fazer a formatação do README em markdown<br>
+O contexto dos problemas são originais (feitos por mim)<br>
 O códgio foi feito pelo gemini
 
 # Padrão criacional:
