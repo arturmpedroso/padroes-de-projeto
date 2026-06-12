@@ -29,7 +29,142 @@ Diretor - chamar builder após builder de forma espalhado pelo código pode acab
 ### Referência:
 https://refactoring.guru/pt-br/design-patterns/builder
 
+builderExemplo.cpp
+```
+/*Imaginando uma classe calculadora, pode vir com métodos de operações implementados de forma diferente, 
+por exemplo:
+- uma divisão pode ser feita por meio de subtrações sucessivas ou pelo próprio perador
+- uma potenciação pode ser feita pelo operador ou por um laço de repetição.
 
+Será possível chamar contrutores diferentes, para implementar cada método dessa classe */
+
+#include <iostream>
+#include <cmath>
+
+// funções utilizando as operações "nativas"
+double divNativa(double a, double b) { return a / b; }
+double potNativa(double a, double b) { return std::pow(a, b); }
+
+// funções das operações em "força bruta"
+double divBruta(double a, double b) {
+    double resultado = 0;
+    double acumulado = a;
+    while (acumulado >= b) {
+        acumulado -= b;
+        resultado++;
+    }
+    return resultado;
+}
+
+double potBruta(double a, double b) {
+    double resultado = 1;
+    for (int i = 0; i < b; ++i) resultado *= a;
+    return resultado;
+}
+
+// Classe calculadora que irá conter as referências para as operações
+class Calculadora {
+public:
+    double (*operacaoDivisao)(double, double) = nullptr;
+    double (*operacaoPotencia)(double, double) = nullptr;
+
+    double dividir(double a, double b) {
+        if (b == 0) {
+            std::cerr << "Erro: Divisao por zero!" << std::endl;
+            return 0;
+        }
+        if (operacaoDivisao) return operacaoDivisao(a, b);
+        return 0;
+    }
+
+    double potenciar(double a, double b) {
+        if (operacaoPotencia) return operacaoPotencia(a, b);
+        return 0;
+    }
+};
+
+// a interface padrão do Builder
+class CalculadoraBuilder {
+public:
+    virtual ~CalculadoraBuilder() {}
+    virtual void reset() = 0;
+    virtual void construirDivisao() = 0;
+    virtual void construirPotencia() = 0;
+    virtual Calculadora* obterResultado() = 0; 
+};
+
+// Builder concreto com as implementações dos métodos "nativos"
+class BuilderNativo : public CalculadoraBuilder {
+private:
+    Calculadora* calculadora;
+public:
+    BuilderNativo() { reset(); }
+    
+    void reset() override { calculadora = new Calculadora(); } // Alocação Bruta
+    
+    void construirDivisao() override { calculadora->operacaoDivisao = divNativa; }
+    void construirPotencia() override { calculadora->operacaoPotencia = potNativa; }
+    
+    Calculadora* obterResultado() override {
+        Calculadora* produto = calculadora;
+        reset(); 
+        return produto;
+    }
+};
+
+// Builder Concreto com a implementação dos metódos em "força bruta"
+class BuilderBruta : public CalculadoraBuilder {
+private:
+    Calculadora* calculadora;
+public:
+    BuilderBruta() { reset(); }
+    
+    void reset() override { calculadora = new Calculadora(); }
+    
+    void construirDivisao() override { calculadora->operacaoDivisao = divBruta; }
+    void construirPotencia() override { calculadora->operacaoPotencia = potBruta; }
+    
+    Calculadora* obterResultado() override {
+        Calculadora* produto = calculadora;
+        reset();
+        return produto;
+    }
+};
+
+// Diretor, que ira construir os métodos conforme o metodo no parametro
+class Diretor {
+public:
+    void criarCalculadoraCompleta(CalculadoraBuilder& builder) {
+        builder.construirDivisao(); //
+        builder.construirPotencia(); //
+    }
+};
+
+int main() {
+    Diretor diretor;
+
+    // Calculadora com métodos "nativos"
+    BuilderNativo builderNativo;
+    diretor.criarCalculadoraCompleta(builderNativo);
+    Calculadora* calcNativa = builderNativo.obterResultado(); // Recebe o ponteiro bruto
+
+    std::cout << "--- Calculadora Nativa ---" << std::endl;
+    std::cout << "9 / 3 = " << calcNativa->dividir(9, 3) << std::endl;
+
+    // Calculadora com métodos "força bruta"
+    BuilderBruta builderBruta;
+    diretor.criarCalculadoraCompleta(builderBruta);
+    Calculadora* calcBruta = builderBruta.obterResultado();
+
+    std::cout << "\n--- Calculadora Bruta ---" << std::endl;
+    std::cout << "2^3 = " << calcBruta->potenciar(2, 3) << std::endl;
+
+    delete calcNativa;
+    delete calcBruta;
+
+    return 0;
+}
+```
 # Padrão Estrutural:
 ## Adapter,Wrapper ou Adaptador
 
@@ -55,6 +190,90 @@ Continuando no exemplo, seria possível criar uma adaptador DOCX-para-ODT que tr
 ### Referência:
 https://refactoring.guru/pt-br/design-patterns/adapter
 
+adapterExemplo.cpp
+```
+/*Imaginando um contexto parecido com o primeiro, uma calculadora que recebe três parametros;
+Calculadora(A,B,Op)
+A e B são dois números, e Op irá indicar a operação a ser feita.
+Dessa forma, nossa calculadora pode utilizar int,float,double, etc;
+O conteúdo de Op pode ser apenas um char '+' ou uma string "soma", ou até mesmo o ponteiro de uma função.
+Imaginando 2 calculadoras Tipo1 e Tipo2:
+CalculadoraTipo1(int,int,char)
+CalculadoraTipo2(double,double,*char)
+Em um caso real as duas seriam chamadas sob demanda para caso específicos, 
+mas caso ocorra algum imprevisto é sempre bom ter um Adapter por perto.*/ 
+
+#include <iostream>
+#include <cstring> // 
+
+// interface que o cliente espera usar
+class AlvoCalculadora {
+public:
+    virtual ~AlvoCalculadora() {}
+    virtual int calcular(int a, int b, char op) = 0;
+};
+
+
+// interface incompatível
+class CalculadoraTipo2 {
+public:
+    double executarCalculo(double a, double b, const char* op) {
+        if (std::strcmp(op, "soma") == 0) {
+            return a + b;
+        }
+        if (std::strcmp(op, "subtracao") == 0) {
+            return a - b;
+        }
+        return 0.0;
+    }
+};
+
+// o adaptador esperando para ser usando.
+class AdaptadorCalculadora : public AlvoCalculadora {
+private:
+    CalculadoraTipo2* calcTipo2; // ponteiro para o serviço a ser utilizado
+
+public:
+    // recepção da classe imcompatível
+    AdaptadorCalculadora(CalculadoraTipo2* servico) : calcTipo2(servico) {}
+
+    int calcular(int a, int b, char op) override {
+        //traduzindo a operação;
+        const char* opTraduzido = "invalido";
+        if (op == '+') opTraduzido = "soma";
+        else if (op == '-') opTraduzido = "subtracao";
+
+        
+        // em C++ ocorre a conversão altomática, na hora do contexto estava pensando em C puro...
+        double resultadoDouble = calcTipo2->executarCalculo(a, b, opTraduzido);
+
+        // conversão do resultado de volta para int, porque é o tipo dos numeros no parâmetro.
+        return static_cast<int>(resultadoDouble);
+    }
+};
+
+int main() {
+    // serviço imcopatível
+    CalculadoraTipo2* calculadoraModerna = new CalculadoraTipo2();
+
+    // criação do apatador
+    AlvoCalculadora* adaptador = new AdaptadorCalculadora(calculadoraModerna);
+
+    std::cout << "--- Usando a Calculadora Tipo 2 através do Adaptador ---" << std::endl;
+    
+    // parametros sendo passados pela Calculadora incompatível através dos parametros do método no Adapter
+    int resultadoSoma = adaptador->calcular(10, 5, '+');
+    int resultadoSub  = adaptador->calcular(10, 5, '-');
+
+    std::cout << "Resultado Adaptado (Soma): " << resultadoSoma << std::endl;
+    std::cout << "Resultado Adaptado (Subtracao): " << resultadoSub << std::endl;
+
+    delete adaptador;
+    delete calculadoraModerna;
+
+    return 0;
+}
+```
 
 # Padrão Comportamental: 
 ## State (ou Estado)
@@ -85,3 +304,113 @@ OBS: ambos os objetos de estado e contexto podem iniciar uma transição de esta
 
 ### Referência:
 https://refactoring.guru/pt-br/design-patterns/state
+
+stateExemplo.cpp
+```
+#include <iostream>
+
+// interface padrão para os estados;
+class EstadoCalculadora {
+public:
+    virtual ~EstadoCalculadora() {}
+    virtual void calcular(double a, double b) = 0;
+};
+// Estado de "trava"
+class EstadoDesligado : public EstadoCalculadora {
+public:
+    void calcular(double a, double b) override {
+        std::cout << "[Erro] Calculadora esta DESLIGADA. Ligue-a primeiro!" << std::endl;
+    }
+};
+
+// Estado de funcionamento (stand-by);
+class EstadoLigadoSafe : public EstadoCalculadora {
+public:
+    void calcular(double a, double b) override {
+        std::cout << "[Aviso] Modo Seguro: Selecione uma operacao (+ ou -) antes de passar valores." << std::endl;
+    }
+};
+
+// Estado de adição
+class EstadoAdicao : public EstadoCalculadora {
+public:
+    void calcular(double a, double b) override {
+        std::cout << "Resultado da Soma: " << (a + b) << std::endl;
+    }
+};
+
+// Estado de subtração
+class EstadoSubtracao : public EstadoCalculadora {
+public:
+    void calcular(double a, double b) override {
+        std::cout << "Resultado da Subtracao: " << (a - b) << std::endl;
+    }
+};
+
+// Classe que irá referências as classes de estado
+class Calculadora {
+private:
+    EstadoCalculadora* estadoAtual;
+    EstadoDesligado  estadoDesligado;
+    EstadoLigadoSafe estadoLigadoSafe;
+    EstadoAdicao     estadoAdicao;
+    EstadoSubtracao  estadoSubtracao;
+
+public:
+    Calculadora() {
+        estadoAtual = &estadoDesligado;
+    }
+
+    // métodos para transição de estados
+    void ligar() {
+        std::cout << "\n-> Ligando a calculadora (Safe Mode)..." << std::endl;
+        estadoAtual = &estadoLigadoSafe;
+    }
+
+    void definirAdicao() {
+        std::cout << "\n-> Mudando para o modo de ADICAO (+)..." << std::endl;
+        estadoAtual = &estadoAdicao;
+    }
+
+    void definirSubtracao() {
+        std::cout << "\n-> Mudando para o modo de SUBTRACAO (-)..." << std::endl;
+        estadoAtual = &estadoSubtracao;
+    }
+
+    void desligar() {
+        std::cout << "\n-> Desligando a calculadora..." << std::endl;
+        estadoAtual = &estadoDesligado;
+    }
+
+    // metodo principal, sem operadores condicionais
+    void executarOperacao(double a, double b) {
+        estadoAtual->calcular(a, b);
+    }
+};
+
+int main() {
+    Calculadora calc;
+
+    // Tentando calcular com a calculadora desligada
+    calc.executarOperacao(10, 5);
+
+    // Ligando a calculadora (stand-by)
+    calc.ligar();
+    calc.executarOperacao(10, 5);
+
+    // Estado adiçao
+    calc.definirAdicao();
+    calc.executarOperacao(10, 5);
+    calc.executarOperacao(50, 20); 
+
+    // Estado subtração
+    calc.definirSubtracao();
+    calc.executarOperacao(10, 5);
+
+    // Estado desligado
+    calc.desligar();
+    calc.executarOperacao(10, 5); // Teste se está desligada
+
+    return 0;
+}
+```
